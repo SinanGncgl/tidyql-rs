@@ -34,6 +34,8 @@ pub fn ui(frame: &mut Frame, app: &App) {
                 Style::default()
                     .fg(Color::Yellow)
                     .add_modifier(Modifier::BOLD)
+                    .bg(Color::Blue)
+                    .add_modifier(Modifier::BOLD | Modifier::ITALIC)
             } else {
                 Style::default().fg(Color::White)
             };
@@ -46,7 +48,13 @@ pub fn ui(frame: &mut Frame, app: &App) {
             .style(Style::default().fg(Color::White))
             .borders(Borders::ALL)
             .title("Browse")
-            .title_alignment(Alignment::Center),
+            .title_alignment(Alignment::Center)
+            .style(Style::default().fg(Color::White).bg(Color::Black))
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::Cyan))
+            .title("Browse")
+            .title_alignment(Alignment::Center)
+            .title_style(Style::default().fg(Color::Magenta).add_modifier(Modifier::BOLD)),
     );
     frame.render_widget(folders_files, top_chunks[0]);
 
@@ -60,3 +68,4 @@ pub fn ui(frame: &mut Frame, app: &App) {
         .wrap(Wrap { trim: true });
     frame.render_widget(file_content, top_chunks[1]);
 }
+    
