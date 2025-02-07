@@ -33,7 +33,6 @@ pub fn ui(frame: &mut Frame, app: &App) {
             let style = if i == app.selected_index {
                 Style::default()
                     .fg(Color::Yellow)
-                    .add_modifier(Modifier::BOLD)
                     .bg(Color::Blue)
                     .add_modifier(Modifier::BOLD | Modifier::ITALIC)
             } else {
@@ -45,10 +44,6 @@ pub fn ui(frame: &mut Frame, app: &App) {
 
     let folders_files = List::new(file_items).block(
         Block::default()
-            .style(Style::default().fg(Color::White))
-            .borders(Borders::ALL)
-            .title("Browse")
-            .title_alignment(Alignment::Center)
             .style(Style::default().fg(Color::White).bg(Color::Black))
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::Cyan))
@@ -62,10 +57,12 @@ pub fn ui(frame: &mut Frame, app: &App) {
         .block(
             Block::default()
                 .borders(Borders::ALL)
+                .border_style(Style::default().fg(Color::Cyan))
                 .title("File Content")
-                .title_alignment(Alignment::Center),
+                .title_alignment(Alignment::Center)
+                .title_style(Style::default().fg(Color::Magenta).add_modifier(Modifier::BOLD)),
         )
+        .style(Style::default().fg(Color::White).bg(Color::Black))
         .wrap(Wrap { trim: true });
     frame.render_widget(file_content, top_chunks[1]);
 }
-    
