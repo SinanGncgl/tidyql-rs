@@ -1,7 +1,5 @@
 use anyhow::Result;
 use log::error;
-use env_logger;
-use std::io;
 use ratatui::{
     backend::{Backend, CrosstermBackend},
     crossterm::{
@@ -11,6 +9,7 @@ use ratatui::{
     },
     Terminal,
 };
+use std::io;
 
 mod app;
 mod ui;

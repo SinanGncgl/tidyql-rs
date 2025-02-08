@@ -13,9 +13,9 @@ pub struct App {
     pub notification: Option<String>,
     pub formatted_content: Option<String>,
     pub diff_content: Option<String>,
-    pub search_query: String, // Add search query state
+    pub search_query: String,         // Add search query state
     pub search_results: Vec<PathBuf>, // Add search results state
-    pub is_searching: bool, // Add search mode state
+    pub is_searching: bool,           // Add search mode state
 }
 
 impl App {
@@ -45,7 +45,9 @@ impl App {
     }
 
     pub fn search_files(&mut self) -> Result<()> {
-        self.search_results = self.files.iter()
+        self.search_results = self
+            .files
+            .iter()
             .filter(|file| file.to_string_lossy().contains(&self.search_query))
             .cloned()
             .collect();

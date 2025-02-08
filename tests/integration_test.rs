@@ -30,7 +30,7 @@ fn test_read_selected_file() -> Result<()> {
     Ok(())
 }
 
-/* 
+/*
 Not good for ci/cd :(
 #[test]
 fn test_format_sql() -> Result<()> {
