@@ -63,7 +63,7 @@ pub fn ui(frame: &mut Frame, app: &App) {
                 .title_style(Style::default().fg(Color::Magenta).add_modifier(Modifier::BOLD)),
         )
         .style(Style::default().fg(Color::White).bg(Color::Black))
-        .wrap(Wrap { trim: true })
+        .wrap(Wrap { trim: false })
         .alignment(Alignment::Left); // Ensure left alignment for better readability
     frame.render_widget(file_content, top_chunks[1]);
 
