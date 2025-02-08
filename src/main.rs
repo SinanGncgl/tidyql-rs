@@ -15,9 +15,6 @@ use ratatui::{
 mod app;
 mod ui;
 
-use crate::app::App;
-use crate::ui::ui;
-
 fn main() -> Result<()> {
     env_logger::init();
     enable_raw_mode()?;
@@ -26,7 +23,7 @@ fn main() -> Result<()> {
     let backend = CrosstermBackend::new(stderr);
     let mut terminal = Terminal::new(backend)?;
 
-    let mut app = App::new()?;
+    let mut app = app::App::new()?;
     let res = run_app(&mut terminal, &mut app);
 
     if let Err(e) = res {
@@ -44,9 +41,9 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> Result<()> {
+fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut app::App) -> Result<()> {
     loop {
-        terminal.draw(|f| ui(f, app))?;
+        terminal.draw(|f| ui::ui(f, app))?;
 
         if let Event::Key(key) = crossterm::event::read()? {
             match key.code {
