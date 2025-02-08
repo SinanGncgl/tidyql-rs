@@ -29,22 +29,39 @@ pub fn ui(frame: &mut Frame, app: &App) {
         )
         .split(chunks[0]);
 
-    let file_items: Vec<ListItem> = app
-        .files
-        .iter()
-        .enumerate()
-        .map(|(i, file)| {
-            let style = if i == app.selected_index {
-                Style::default()
-                    .fg(Color::Yellow)
-                    .bg(Color::Blue)
-                    .add_modifier(Modifier::BOLD | Modifier::ITALIC)
-            } else {
-                Style::default().fg(Color::White)
-            };
-            ListItem::new(file.to_string_lossy().to_string()).style(style)
-        })
-        .collect();
+    let file_items: Vec<ListItem> = if app.is_searching {
+        app.search_results
+            .iter()
+            .enumerate()
+            .map(|(i, file)| {
+                let style = if i == app.selected_index {
+                    Style::default()
+                        .fg(Color::Yellow)
+                        .bg(Color::Blue)
+                        .add_modifier(Modifier::BOLD | Modifier::ITALIC)
+                } else {
+                    Style::default().fg(Color::White)
+                };
+                ListItem::new(file.to_string_lossy().to_string()).style(style)
+            })
+            .collect()
+    } else {
+        app.files
+            .iter()
+            .enumerate()
+            .map(|(i, file)| {
+                let style = if i == app.selected_index {
+                    Style::default()
+                        .fg(Color::Yellow)
+                        .bg(Color::Blue)
+                        .add_modifier(Modifier::BOLD | Modifier::ITALIC)
+                } else {
+                    Style::default().fg(Color::White)
+                };
+                ListItem::new(file.to_string_lossy().to_string()).style(style)
+            })
+            .collect()
+    };
 
     let folders_files = List::new(file_items).block(
         Block::default()
@@ -135,7 +152,7 @@ pub fn ui(frame: &mut Frame, app: &App) {
         .alignment(Alignment::Left); // Ensure left alignment for better readability
     frame.render_widget(content, top_chunks[1]);
 
-    let commands_text = "Commands: q - Quit | f - Format SQL | s - Save";
+    let commands_text = "Commands: q - Quit | f - Format SQL | s - Save | / - Search";
 
     let commands = Paragraph::new(commands_text)
         .block(
@@ -170,5 +187,28 @@ pub fn ui(frame: &mut Frame, app: &App) {
             .style(Style::default().fg(Color::White).bg(Color::Black))
             .alignment(Alignment::Center);
         frame.render_widget(notification_paragraph, notification_area);
+    }
+
+    // Search popup
+    if app.is_searching {
+        let search_area = Rect::new(
+            (frame.area().width - 50) / 2,
+            (frame.area().height - 3) / 2,
+            50,
+            3,
+        );
+        let search_text = format!("Search: {}", app.search_query);
+        let search_paragraph = Paragraph::new(search_text)
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .border_style(Style::default().fg(Color::Cyan))
+                    .title("Search")
+                    .title_alignment(Alignment::Center)
+                    .title_style(Style::default().fg(Color::Magenta).add_modifier(Modifier::BOLD)),
+            )
+            .style(Style::default().fg(Color::White).bg(Color::Black))
+            .alignment(Alignment::Left);
+        frame.render_widget(search_paragraph, search_area);
     }
 }

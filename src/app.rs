@@ -13,6 +13,9 @@ pub struct App {
     pub notification: Option<String>,
     pub formatted_content: Option<String>,
     pub diff_content: Option<String>,
+    pub search_query: String, // Add search query state
+    pub search_results: Vec<PathBuf>, // Add search results state
+    pub is_searching: bool, // Add search mode state
 }
 
 impl App {
@@ -25,6 +28,9 @@ impl App {
             selected_index: 0,
             notification: None,
             diff_content: None,
+            search_query: String::new(),
+            search_results: Vec::new(),
+            is_searching: false,
         };
         app.update_file_list()?;
         Ok(app)
@@ -34,6 +40,14 @@ impl App {
         self.files = fs::read_dir(".")
             .context("Failed to read directory")?
             .filter_map(|entry| entry.ok().map(|e| e.path()))
+            .collect();
+        Ok(())
+    }
+
+    pub fn search_files(&mut self) -> Result<()> {
+        self.search_results = self.files.iter()
+            .filter(|file| file.to_string_lossy().contains(&self.search_query))
+            .cloned()
             .collect();
         Ok(())
     }
