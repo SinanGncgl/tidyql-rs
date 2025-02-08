@@ -2,9 +2,13 @@ use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
     prelude::Alignment,
     style::{Color, Modifier, Style},
+    text::{Line, Span, Text},
     widgets::{Block, Borders, List, ListItem, Paragraph, Wrap},
     Frame,
 };
+use syntect::easy::HighlightLines;
+use syntect::highlighting::{ThemeSet, Style as SyntectStyle};
+use syntect::parsing::SyntaxSet;
 
 use crate::app::App;
 
@@ -53,7 +57,65 @@ pub fn ui(frame: &mut Frame, app: &App) {
     );
     frame.render_widget(folders_files, top_chunks[0]);
 
-    let file_content = Paragraph::new(app.file_content.as_str())
+    // Syntax highlighting for SQL content
+    let ps = SyntaxSet::load_defaults_newlines();
+    let ts = ThemeSet::load_defaults();
+    let syntax = ps.find_syntax_by_extension("sql").unwrap();
+    let mut h = HighlightLines::new(syntax, &ts.themes["base16-ocean.dark"]);
+
+    let highlighted_sql: Vec<Line> = app
+        .file_content
+        .lines()
+        .map(|line| {
+            let ranges: Vec<(SyntectStyle, &str)> = h.highlight_line(line, &ps).unwrap();
+            let spans: Vec<Span> = ranges
+                .into_iter()
+                .map(|(style, text)| {
+                    Span::styled(
+                        text.to_string(),
+                        Style::default().fg(Color::Rgb(
+                            style.foreground.r,
+                            style.foreground.g,
+                            style.foreground.b,
+                        )),
+                    )
+                })
+                .collect();
+            Line::from(spans)
+        })
+        .collect();
+
+    let formatted_sql: Vec<Line> = app
+        .formatted_content
+        .as_deref()
+        .unwrap_or("")
+        .lines()
+        .map(|line| {
+            let ranges: Vec<(SyntectStyle, &str)> = h.highlight_line(line, &ps).unwrap();
+            let spans: Vec<Span> = ranges
+                .into_iter()
+                .map(|(style, text)| {
+                    Span::styled(
+                        text.to_string(),
+                        Style::default().fg(Color::Rgb(
+                            style.foreground.r,
+                            style.foreground.g,
+                            style.foreground.b,
+                        )),
+                    )
+                })
+                .collect();
+            Line::from(spans)
+        })
+        .collect();
+
+    let content_text = if app.formatted_content.is_some() {
+        Text::from(formatted_sql)
+    } else {
+        Text::from(highlighted_sql)
+    };
+
+    let content = Paragraph::new(content_text)
         .block(
             Block::default()
                 .borders(Borders::ALL)
@@ -65,9 +127,11 @@ pub fn ui(frame: &mut Frame, app: &App) {
         .style(Style::default().fg(Color::White).bg(Color::Black))
         .wrap(Wrap { trim: false })
         .alignment(Alignment::Left); // Ensure left alignment for better readability
-    frame.render_widget(file_content, top_chunks[1]);
+    frame.render_widget(content, top_chunks[1]);
 
-    let commands = Paragraph::new("Commands: q - Quit | f - Format SQL | s - Save")
+    let commands_text = "Commands: q - Quit | f - Format SQL | s - Save";
+
+    let commands = Paragraph::new(commands_text)
         .block(
             Block::default()
                 .borders(Borders::ALL)
@@ -83,7 +147,7 @@ pub fn ui(frame: &mut Frame, app: &App) {
     // Notification bubble at the top right
     if let Some(ref notification) = app.notification {
         let notification_area = Rect::new(
-            frame.area().width.saturating_sub(30),
+            frame.area().width.saturating_sub(30), // Adjust width as needed
             0,
             30,
             3,
