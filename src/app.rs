@@ -13,9 +13,10 @@ pub struct App {
     pub notification: Option<String>,
     pub formatted_content: Option<String>,
     pub diff_content: Option<String>,
-    pub search_query: String,         // Add search query state
-    pub search_results: Vec<PathBuf>, // Add search results state
-    pub is_searching: bool,           // Add search mode state
+    pub search_query: String,
+    pub search_results: Vec<PathBuf>,
+    pub is_searching: bool,
+    pub current_dir: PathBuf,
 }
 
 impl App {
@@ -31,13 +32,14 @@ impl App {
             search_query: String::new(),
             search_results: Vec::new(),
             is_searching: false,
+            current_dir: PathBuf::from("."),
         };
         app.update_file_list()?;
         Ok(app)
     }
 
     fn update_file_list(&mut self) -> Result<()> {
-        self.files = fs::read_dir(".")
+        self.files = fs::read_dir(&self.current_dir)
             .context("Failed to read directory")?
             .filter_map(|entry| entry.ok().map(|e| e.path()))
             .collect();
@@ -124,6 +126,28 @@ impl App {
             } else {
                 self.notification = Some("No formatted content to save".to_string());
             }
+        }
+        Ok(())
+    }
+
+    pub fn navigate_into_folder(&mut self) -> Result<()> {
+        if let Some(ref path) = self.selected_file {
+            if path.is_dir() {
+                self.current_dir = path.clone();
+                self.update_file_list()?;
+                self.selected_index = 0;
+                self.selected_file = None;
+            }
+        }
+        Ok(())
+    }
+
+    pub fn navigate_back(&mut self) -> Result<()> {
+        if let Some(parent) = self.current_dir.parent() {
+            self.current_dir = parent.to_path_buf();
+            self.update_file_list()?;
+            self.selected_index = 0;
+            self.selected_file = None;
         }
         Ok(())
     }

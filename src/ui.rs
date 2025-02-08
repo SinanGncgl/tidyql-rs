@@ -22,8 +22,8 @@ pub fn ui(frame: &mut Frame, app: &App) {
         .direction(Direction::Horizontal)
         .constraints(
             [
-                Constraint::Percentage(12), // (folders and files)
-                Constraint::Percentage(88), // (file content)
+                Constraint::Percentage(23), // (folders and files)
+                Constraint::Percentage(77), // (file content)
             ]
             .as_ref(),
         )
@@ -68,7 +68,7 @@ pub fn ui(frame: &mut Frame, app: &App) {
             .style(Style::default().fg(Color::White).bg(Color::Black))
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::Cyan))
-            .title("Browse")
+            .title(format!("Browse: {}", app.current_dir.display()))
             .title_alignment(Alignment::Center)
             .title_style(
                 Style::default()
@@ -160,7 +160,8 @@ pub fn ui(frame: &mut Frame, app: &App) {
         .alignment(Alignment::Left); // Ensure left alignment for better readability
     frame.render_widget(content, top_chunks[1]);
 
-    let commands_text = "Commands: q - Quit | f - Format SQL | s - Save | / - Search";
+    let commands_text =
+        "Commands: q - Quit | f - Format SQL | s - Save | / - Search | → - Enter Folder | ← - Back";
 
     let commands = Paragraph::new(commands_text)
         .block(

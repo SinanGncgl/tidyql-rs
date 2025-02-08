@@ -93,6 +93,12 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut app::App) -> Result
                         app.is_searching = true;
                         app.search_query.clear();
                     }
+                    KeyCode::Right => {
+                        app.navigate_into_folder()?;
+                    }
+                    KeyCode::Left => {
+                        app.navigate_back()?;
+                    }
                     _ => {}
                 }
             }
