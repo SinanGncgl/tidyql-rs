@@ -60,6 +60,12 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                         app.select_file(app.selected_index);
                     }
                 }
+                KeyCode::Char('f') => {
+                    app.format_sql();
+                }
+                KeyCode::Char('s') => {
+                    app.save_formatted_file();
+                }
                 _ => {}
             }
         }
