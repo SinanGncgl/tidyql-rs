@@ -66,7 +66,8 @@ pub fn ui(frame: &mut Frame, app: &App) {
     let highlighted_sql: Vec<Line> = app
         .file_content
         .lines()
-        .map(|line| {
+        .enumerate()
+        .map(|(i, line)| {
             let ranges: Vec<(SyntectStyle, &str)> = h.highlight_line(line, &ps).unwrap();
             let spans: Vec<Span> = ranges
                 .into_iter()
@@ -81,7 +82,13 @@ pub fn ui(frame: &mut Frame, app: &App) {
                     )
                 })
                 .collect();
-            Line::from(spans)
+            let line_number = Span::styled(
+                format!("{:4} ", i + 1),
+                Style::default().fg(Color::DarkGray),
+            );
+            let mut line_with_number = vec![line_number];
+            line_with_number.extend(spans);
+            Line::from(line_with_number)
         })
         .collect();
 
@@ -90,7 +97,8 @@ pub fn ui(frame: &mut Frame, app: &App) {
         .as_deref()
         .unwrap_or("")
         .lines()
-        .map(|line| {
+        .enumerate()
+        .map(|(i, line)| {
             let style = if line.starts_with('+') {
                 Style::default().fg(Color::Green)
             } else if line.starts_with('-') {
@@ -98,7 +106,12 @@ pub fn ui(frame: &mut Frame, app: &App) {
             } else {
                 Style::default().fg(Color::White)
             };
-            Line::from(Span::styled(line.to_string(), style))
+            let line_number = Span::styled(
+                format!("{:4} ", i + 1),
+                Style::default().fg(Color::DarkGray),
+            );
+            let line_with_number = vec![line_number, Span::styled(line.to_string(), style)];
+            Line::from(line_with_number)
         })
         .collect();
 
