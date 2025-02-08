@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 color-eyre = "0.6.3"
 crossterm = "0.28.1"
+difference = "2.0.0"
 ratatui = "0.29.0"
 sqlformat = "0.3.5"
 syntect = "5.2.0"

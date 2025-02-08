@@ -85,32 +85,25 @@ pub fn ui(frame: &mut Frame, app: &App) {
         })
         .collect();
 
-    let formatted_sql: Vec<Line> = app
-        .formatted_content
+    let diff_sql: Vec<Line> = app
+        .diff_content
         .as_deref()
         .unwrap_or("")
         .lines()
         .map(|line| {
-            let ranges: Vec<(SyntectStyle, &str)> = h.highlight_line(line, &ps).unwrap();
-            let spans: Vec<Span> = ranges
-                .into_iter()
-                .map(|(style, text)| {
-                    Span::styled(
-                        text.to_string(),
-                        Style::default().fg(Color::Rgb(
-                            style.foreground.r,
-                            style.foreground.g,
-                            style.foreground.b,
-                        )),
-                    )
-                })
-                .collect();
-            Line::from(spans)
+            let style = if line.starts_with('+') {
+                Style::default().fg(Color::Green)
+            } else if line.starts_with('-') {
+                Style::default().fg(Color::Red)
+            } else {
+                Style::default().fg(Color::White)
+            };
+            Line::from(Span::styled(line.to_string(), style))
         })
         .collect();
 
-    let content_text = if app.formatted_content.is_some() {
-        Text::from(formatted_sql)
+    let content_text = if app.diff_content.is_some() {
+        Text::from(diff_sql)
     } else {
         Text::from(highlighted_sql)
     };

@@ -1,3 +1,4 @@
+use difference::{Changeset, Difference};
 use sqlformat::{format, FormatOptions, Indent, QueryParams};
 use std::fs::{self, File};
 use std::io::Write;
@@ -10,6 +11,7 @@ pub struct App {
     pub selected_index: usize,
     pub notification: Option<String>,
     pub formatted_content: Option<String>,
+    pub diff_content: Option<String>,
 }
 
 impl App {
@@ -21,6 +23,7 @@ impl App {
             formatted_content: None,
             selected_index: 0,
             notification: None,
+            diff_content: None,
         };
         app.update_file_list();
         app
@@ -65,8 +68,20 @@ impl App {
                         ignore_case_convert: None,
                     },
                 );
-                self.formatted_content = Some(formatted_sql);
+                self.formatted_content = Some(formatted_sql.clone());
                 self.notification = Some("SQL formatted successfully".to_string());
+
+                // Generate the diff content
+                let changeset = Changeset::new(&self.file_content, &formatted_sql, "\n");
+                let mut diff_content = String::new();
+                for diff in changeset.diffs {
+                    match diff {
+                        Difference::Same(ref x) => diff_content.push_str(&format!(" {}\n", x)),
+                        Difference::Add(ref x) => diff_content.push_str(&format!("+{}\n", x)),
+                        Difference::Rem(ref x) => diff_content.push_str(&format!("-{}\n", x)),
+                    }
+                }
+                self.diff_content = Some(diff_content);
             } else {
                 self.notification = Some("Selected file is not an SQL file".to_string());
             }
@@ -80,6 +95,7 @@ impl App {
                     let mut file = File::create(path).expect("Failed to create file");
                     file.write_all(formatted_content.as_bytes()).expect("Failed to write to file");
                     self.notification = Some("File saved successfully".to_string());
+                    self.diff_content = None
                 }
             } else {
                 self.notification = Some("No formatted content to save".to_string());
