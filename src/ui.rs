@@ -22,8 +22,8 @@ pub fn ui(frame: &mut Frame, app: &App) {
         .direction(Direction::Horizontal)
         .constraints(
             [
-                Constraint::Percentage(20), // (folders and files)
-                Constraint::Percentage(80), // (file content)
+                Constraint::Percentage(12), // (folders and files)
+                Constraint::Percentage(88), // (file content)
             ]
             .as_ref(),
         )
