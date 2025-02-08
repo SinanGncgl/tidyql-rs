@@ -1,3 +1,4 @@
+use anyhow::{Context, Result};
 use difference::{Changeset, Difference};
 use sqlformat::{format, FormatOptions, Indent, QueryParams};
 use std::fs::{self, File};
@@ -15,7 +16,7 @@ pub struct App {
 }
 
 impl App {
-    pub fn new() -> Self {
+    pub fn new() -> Result<Self> {
         let mut app = App {
             files: Vec::new(),
             selected_file: None,
@@ -25,37 +26,41 @@ impl App {
             notification: None,
             diff_content: None,
         };
-        app.update_file_list();
-        app
+        app.update_file_list()?;
+        Ok(app)
     }
 
-    fn update_file_list(&mut self) {
+    fn update_file_list(&mut self) -> Result<()> {
         self.files = fs::read_dir(".")
-            .unwrap()
+            .context("Failed to read directory")?
             .filter_map(|entry| entry.ok().map(|e| e.path()))
             .collect();
+        Ok(())
     }
 
-    pub fn select_file(&mut self, index: usize) {
+    pub fn select_file(&mut self, index: usize) -> Result<()> {
         if index < self.files.len() {
             self.selected_file = Some(self.files[index].clone());
-            self.read_selected_file();
+            self.read_selected_file()?;
         }
+        Ok(())
     }
 
-    fn read_selected_file(&mut self) {
+    fn read_selected_file(&mut self) -> Result<()> {
         if let Some(ref path) = self.selected_file {
             if path.is_file() {
-                self.file_content =
-                    fs::read_to_string(path).unwrap_or_else(|_| "Failed to read file".to_string());
+                self.file_content = fs::read_to_string(path)
+                    .with_context(|| format!("Failed to read file: {:?}", path))?;
                 self.formatted_content = None;
+                self.diff_content = None;
             } else {
                 self.file_content = "Selected item is not a file".to_string();
             }
         }
+        Ok(())
     }
 
-    pub fn format_sql(&mut self) {
+    pub fn format_sql(&mut self) -> Result<()> {
         if let Some(ref path) = self.selected_file {
             if path.extension().and_then(|s| s.to_str()) == Some("sql") {
                 let formatted_sql = format(
@@ -86,20 +91,24 @@ impl App {
                 self.notification = Some("Selected file is not an SQL file".to_string());
             }
         }
+        Ok(())
     }
 
-    pub fn save_formatted_file(&mut self) {
+    pub fn save_formatted_file(&mut self) -> Result<()> {
         if let Some(ref path) = self.selected_file {
             if let Some(ref formatted_content) = self.formatted_content {
                 if path.extension().and_then(|s| s.to_str()) == Some("sql") {
-                    let mut file = File::create(path).expect("Failed to create file");
-                    file.write_all(formatted_content.as_bytes()).expect("Failed to write to file");
+                    let mut file = File::create(path)
+                        .with_context(|| format!("Failed to create file: {:?}", path))?;
+                    file.write_all(formatted_content.as_bytes())
+                        .with_context(|| format!("Failed to write to file: {:?}", path))?;
                     self.notification = Some("File saved successfully".to_string());
-                    self.diff_content = None
+                    self.diff_content = None;
                 }
             } else {
                 self.notification = Some("No formatted content to save".to_string());
             }
         }
+        Ok(())
     }
 }

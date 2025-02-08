@@ -1,5 +1,7 @@
-use std::{error::Error, io};
-
+use anyhow::Result;
+use log::error;
+use env_logger;
+use std::io;
 use ratatui::{
     backend::{Backend, CrosstermBackend},
     crossterm::{
@@ -16,18 +18,19 @@ mod ui;
 use crate::app::App;
 use crate::ui::ui;
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> Result<()> {
+    env_logger::init();
     enable_raw_mode()?;
     let mut stderr = io::stderr();
     execute!(stderr, EnterAlternateScreen, EnableMouseCapture)?;
     let backend = CrosstermBackend::new(stderr);
     let mut terminal = Terminal::new(backend)?;
 
-    let mut app = App::new();
+    let mut app = App::new()?;
     let res = run_app(&mut terminal, &mut app);
 
     if let Err(e) = res {
-        eprintln!("Error: {}", e);
+        error!("Error: {}", e);
     }
 
     disable_raw_mode()?;
@@ -41,30 +44,30 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<bool> {
+fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> Result<()> {
     loop {
         terminal.draw(|f| ui(f, app))?;
 
         if let Event::Key(key) = crossterm::event::read()? {
             match key.code {
-                KeyCode::Char('q') => return Ok(true),
+                KeyCode::Char('q') => return Ok(()),
                 KeyCode::Down => {
                     if app.selected_index < app.files.len() - 1 {
                         app.selected_index += 1;
-                        app.select_file(app.selected_index);
+                        app.select_file(app.selected_index)?;
                     }
                 }
                 KeyCode::Up => {
                     if app.selected_index > 0 {
                         app.selected_index -= 1;
-                        app.select_file(app.selected_index);
+                        app.select_file(app.selected_index)?;
                     }
                 }
                 KeyCode::Char('f') => {
-                    app.format_sql();
+                    app.format_sql()?;
                 }
                 KeyCode::Char('s') => {
-                    app.save_formatted_file();
+                    app.save_formatted_file()?;
                 }
                 _ => {}
             }
